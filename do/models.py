@@ -49,6 +49,9 @@ class Post(models.Model):
 	last_sync = models.IntegerField(db_index=True,default=0)
 	sync_complete = models.BooleanField(default=False)
 
+	is_public = models.BooleanField(default=False)
+	is_anonymous = models.BooleanField(default=False)
+
 
 class UserStatusFactory:
 	def __init__(self,_base_class,_user_object):

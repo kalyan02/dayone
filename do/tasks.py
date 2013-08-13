@@ -12,18 +12,14 @@ import urllib, json, os, re, time, dateutil, datetime
 @task
 def sync_meta( user_profile, *kargs ):
 	time.sleep(1)
-	# dapi = lib.DropboxAPI( user=user_profile.user )
-	# req = dapi.request('https://api.dropbox.com/1/metadata/dropbox/' + user_profile.entries_path ).to_url()
-	# eres = urllib.urlopen(req).read()
-	# eres_obj = json.loads( eres )
-	# eres_obj = json.loads( user_profile.entries_meta )
 
-	# first fetch share_url -> this gives us the direct links
-	# put it in session
+	dapi = lib.DropboxAPI( user=user_profile.user )
+	metadat_request = dapi.request('https://api.dropbox.com/1/metadata/dropbox/' + user_profile.entries_path ).to_url()
+	metadata_response = urllib.urlopen(metadat_request).read()
 
-	# user_profile.entries_meta = eres
-	# user_profile.entries_last_sync = time.time()
-	# user_profile.save()
+	user_profile.entries_meta = metadata_response
+	user_profile.entries_last_sync = time.time()
+	user_profile.save()
 
 	# trigger post_refresh_in_progress=True
 
@@ -49,6 +45,23 @@ def sync_data( user_profile, *kargs, **kwargs ):
 		print 'is_refreshing'
 		user_status.set('post_refresh_in_progress','True')
 
+		# figure out when the posts in the db were last synced!
+		db_uuid_last_sync_map = {}
+		db_uuid_post_map = {}
+		user_posts = Post.objects.filter(user_id=user_profile.user_id)
+		for each_post in user_posts:
+			db_uuid_last_sync_map[ each_post.uuid ] = each_post.last_sync
+			db_uuid_post_map[ each_post.uuid ] = each_post
+
+		# figure out the last modified times of all posts from metadata
+		meta_last_modified_map = {}
+		entries_meta = json.loads(user_profile.entries_meta)
+		for each in entries_meta['contents']:
+			last_modified_datetime = dateutil.parser.parse( each['modified'] )
+			last_modified = (last_modified_datetime.replace(tzinfo=None) - datetime.datetime(1970,1,1)).total_seconds()
+			uuid_file = os.path.basename(each['path'])
+			meta_last_modified_map[ uuid_file ] = last_modified
+
 		# fetch permanent urls first
 		# entries_html = urllib.urlopen(user_profile.entries_share_url).read()
 		entries_html = open('entries_html.html','r').read()
@@ -60,35 +73,18 @@ def sync_data( user_profile, *kargs, **kwargs ):
 			share_uuid_names.append( share_uuid_name )
 			uuid_share_path_map[ share_uuid_name ] = each_share_link.replace('www.dropbox','dl.dropboxusercontent')
 
-		# figure out the last modified times of all posts from metadata
-		meta_last_modified_map = {}
-		entries_meta = json.loads(user_profile.entries_meta)
-		for each in entries_meta['contents']:
-			last_modified_datetime = dateutil.parser.parse( each['modified'] )
-			last_modified = (last_modified_datetime.replace(tzinfo=None) - datetime.datetime(1970,1,1)).total_seconds()
-			uuid_file = os.path.basename(each['path'])
-			meta_last_modified_map[ uuid_file ] = last_modified
-
-		# figure out when the posts in the db were last synced!
-		db_uuid_last_sync_map = {}
-		db_uuid_post_map = {}
-		user_posts = Post.objects.filter(user_id=user_profile.user_id)
-		for each_post in user_posts:
-			db_uuid_last_sync_map[ each_post.uuid ] = each_post.last_sync
-			db_uuid_post_map[ each_post.uuid ] = each_post
 
 		# All the 3 maps have uuids as keys
-		print len(meta_last_modified_map.keys())
-		print len(uuid_share_path_map.keys())
-		print len(db_uuid_last_sync_map.keys())
-		print json.dumps(meta_last_modified_map,indent=4)
-		print json.dumps(uuid_share_path_map,indent=4)
-		print json.dumps(db_uuid_last_sync_map,indent=4)
+		# print len(meta_last_modified_map.keys())
+		# print len(uuid_share_path_map.keys())
+		# print len(db_uuid_last_sync_map.keys())
+		# print json.dumps(meta_last_modified_map,indent=4)
+		# print json.dumps(uuid_share_path_map,indent=4)
+		# print json.dumps(db_uuid_last_sync_map,indent=4)
 
 		# posts that need to be tasked out and fetched
 		# 	- posts modified after last sync
 		# 	- posts not in db
-
 		uuids_to_task = []
 		all_uuids = meta_last_modified_map.keys()
 		for each_uuid in all_uuids:
@@ -129,7 +125,8 @@ def sync_data( user_profile, *kargs, **kwargs ):
 				post_object.sync_ready = True
 				post_object.sync_complete = False
 				post_object.save()
-				# sync_post.delay( user_profile, each_uuid )
+				print 'TO_SYNC', post_object.uuid
+				sync_post.delay( user_profile, post_object )
 			else:
 				# report error
 				pass
@@ -139,5 +136,13 @@ def sync_data( user_profile, *kargs, **kwargs ):
 	pass
 
 @task
-def sync_post():
+def sync_post( user_profile, post_object ):
+	time.sleep(3)
+	print "SYNC_POST", post_object.uuid
+	content = urllib.urlopen( post_object.entry_share_url ).read()
+	post_object.content = content
+	post_object.sync_ready = False
+	post_object.sync_complete = True
+	post_object.last_sync = time.time()
+	post_object.save()
 	pass

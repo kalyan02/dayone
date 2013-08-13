@@ -6,6 +6,8 @@ from django.db import connection
 from django.contrib.auth.decorators import login_required
 from django import forms
 from django.forms.util import ErrorList
+from django.template.loader import render_to_string
+
 import oauth2, json, urlparse, urllib, time, os
 
 from do import settings, lib, tasks
@@ -105,6 +107,7 @@ def setup_profile(request):
 					path_obj = res_obj[ form_path_index ]
 					journal_path = path_obj['path'].strip('/')
 					entries_path = path_obj['path'].strip('/') + "/entries"
+					photos_path = path_obj['path'].strip('/') + "/photos"
 
 					req = dapi.request('https://api.dropbox.com/1/metadata/dropbox/' + entries_path ).to_url()
 					eres = urllib.urlopen(req).read()
@@ -123,6 +126,7 @@ def setup_profile(request):
 						user_profile.journal_share_url = journal_share_url
 						user_profile.entries_path = entries_path
 						user_profile.entries_share_url = entries_share_url
+						user_profile.photos_path = photos_path
 
 						user_profile.entries_meta = eres
 						user_profile.entries_last_sync = time.time()
@@ -170,24 +174,26 @@ def view_entries(request):
 			'meta_job_id' : meta_job_id
 		})
 
-
 from celery.result import AsyncResult
 
 @login_required(login_url='/')
 def entries_refresh(request):
+	print 'entry'
 	obj = { 
 		'done' : 0,
 		'html' : 'hellooo'
 	}
 
-	# implement a way to use sessions for reading for faster access
-	# but persist to db for other stuff
-	# call it StatusBackedSession.factory(session=request.session,user=request.user)
+
 	user_status = Status.factory(request.user)
 
 	# check progress status
 	# if in_progress, then check for result status
 	# print 'META_STATUS', meta_refresh_in_progress
+	user_posts = Post.objects.filter(user_id=request.user.id)
+	posts_sync_complete = [ each for each in user_posts if each.sync_complete==True ]
+	posts_sync_pending = [ each for each in user_posts if each.sync_complete==False ]
+
 	if user_status.get('meta_refresh_in_progress').value == 'True':
 		meta_job_id = user_status.get('meta_refresh_job_id').value
 		# print "JOB_ID", meta_job_id
@@ -197,19 +203,13 @@ def entries_refresh(request):
 				# print 'OK_SUCCESS'
 				user_status.set('meta_refresh_in_progress','False')
 				user_status.set('meta_refresh_complete','True')
-				obj['html'] = meta_job.status + ":" + str(time.time()) + "<br>test<pre>%s</pre>" % (request.user.profile.entries_meta)
-				obj['done'] = 1
-			# prepare list of posts we have in db
-		else:
-			obj['html'] = 'job id is 0! duh!'
 
-	# meta fetch is complete -> sjpild
-	# post fetch in progress
-	# job_complete
-	if user_status.get('post_refresh_in_progress').value == 'True':
-		obj['done'] = 0
+	# if meta is not being refreshed
+	# and pending posts is 0
+	if len(posts_sync_pending) == 0 and user_status.get('meta_refresh_in_progress').value != 'True':
+		obj['done'] = 1
 
-
+	obj['html'] = "<br>\n".join([ each.uuid for each in posts_sync_complete])
 	# now start spawning all the tasks for fetching individual posts
 	# if meta refresh is complete
 	# if request.session.get('meta_refresh_complete', False):
