@@ -188,7 +188,7 @@ def entries_refresh(request):
 	# check progress status
 	# if in_progress, then check for result status
 	# print 'META_STATUS', meta_refresh_in_progress
-	if user_status.get('meta_refresh_in_progress').value; == 'True':
+	if user_status.get('meta_refresh_in_progress').value == 'True':
 		meta_job_id = user_status.get('meta_refresh_job_id').value
 		# print "JOB_ID", meta_job_id
 		if meta_job_id > 0:

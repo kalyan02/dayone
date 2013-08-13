@@ -35,14 +35,19 @@ class Profile(models.Model):
 
 class Post(models.Model):
 	user = models.ForeignKey(auth.models.User)
+	#can get rid of entry_path
 	entry_path = models.CharField(max_length=200,null=True,default='',blank=True)
-	entry_share_url = models.CharField(max_length=200,null=True,default='',blank=True)
-	content = models.TextField(default=None,null=True)
-	sync_complete = models.BooleanField(default=False)
 
+	# before secondary bg task
+	entry_share_url = models.CharField(max_length=200,null=True,default='',blank=True)
 	uuid = models.CharField(max_length=64,null=True,default='',blank=True)
-	pub_date = models.DateField(null=True)
+	sync_ready = models.BooleanField(default=False)
+
+	# secondary bg task
+	content = models.TextField(default=None,null=True)
 	all_tags = models.TextField(default=None,null=True)
+	last_sync = models.IntegerField(db_index=True,default=0)
+	sync_complete = models.BooleanField(default=False)
 
 
 class UserStatusFactory:
