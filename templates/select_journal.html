@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class='page_setup'>
+{{ form.errors }}
+
+<pre>{{metadata}}</pre>
+
+<p>Select the location of your dayone journal in your dropbox</p>
+<table>
+{% for item in journals %}
+	<tr>
+		<form action="?" method="POST">
+		<td>
+			<input type='hidden' name='path_index' value='{{ item.i }}' /> {{ item.path }}
+		</td>
+		<td><input type="submit" value="pick" /></td>
+		{% csrf_token %}
+		</form>
+	</form>
+{% endfor %}
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load url from future %}
+	
+{% block content %}
+
+{% if not user.is_authenticated %}
+<a href='{% url 'socialauth_begin' 'dropbox' %}'>Log into dropbox</a>
+{% else %}
+	you are in man {{ user }}
+{% endif %}
+
+{% endblock %}

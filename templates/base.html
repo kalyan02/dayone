@@ -1,0 +1,57 @@
+{% load url from future %}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Dayone</title>
+	<style type="text/css">
+	body { font:12px verdana; text-align: center; }
+	h1, h2, h3 { font-weight: normal; margin-top: 0 }
+	#container { width: 80%; margin: auto; border: 0px solid #ccc; padding:10px 20px; text-align: left; }
+	fieldset { border: 1px solid #eee; }
+
+	body { font:14px "Helvetica Neue", Arial, Verdana; }
+	#header h2 { font-size: 35px; }
+	#header h2 span { font-weight: normal; margin-left: 20px; line-height: 35px; float: right; }
+	#header h2 a { border:1px solid #B55242; padding: 4px; text-decoration: none; font-size: 14px; }
+	#header h2 a:hover { color: #fff; background: #B55242}
+	a { color : #B55242; }
+	a:hover {  text-decoration: none; }
+
+	.page_edit_profile form input, .no_input { padding:3px; border: 1px solid #ccc; border-radius: 3px; }
+	.page_edit_profile .input, .no_input { font-size: 30px; border:0; border-bottom: 1px solid #ccc; }
+	.page_edit_profile .button { background: #3A9EE4; border: 0; font-size: 24px; padding: 6px 20px; color: #fff }
+	.no_input { color:#ccc;}
+
+	.page_setup table td { font-size: 20px; }
+	.page_setup table input { font-size: 20px; padding: 6px 20px; margin:5px; background: #3A9EE4; border: 0; border-radius: 10px;   color : #fff;}
+	</style>
+	<script type="text/javascript" src="/static/jquery.min.js"></script>
+</head>
+<body>
+
+<div id="container">
+
+	<div id="header">
+		<h2>dayone.in
+			<span>
+			{% if not user.is_authenticated %}
+				<a href='{% url 'socialauth_begin' 'dropbox' %}'>Log into dropbox</a>
+			{% else %}
+				<a href='{% url 'edit_profile' %}'>edit profile</a>
+				<a href='{% url 'view_entries' %}'>view entries</a>
+				<a href='{% url 'api_profile' %}'>api stuff</a>
+			{% endif %}
+			</span>
+		</h2>
+
+	</div>
+	<div id="content">		
+		{% block content %}
+		{% endblock %}
+	</div>
+</div>
+<pre>
+</pre>
+
+</body>
+</html>

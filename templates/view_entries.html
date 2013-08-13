@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div id="info">
+loading...
+</div>
+<pre>
+job_id = {{ meta_job_id }}
+</pre>
+
+<script type="text/javascript">
+function _fetch_view() {
+	$.getJSON('/entries_refresh',function(data){
+		console.log(data);
+		if(!data.done) {
+			setTimeout(_fetch_view,5000);
+			$("#info").html( data.html + "\nLoading..." );
+		} else {
+			$("#info").html( data.html + "\nDone" );
+		}
+	});
+}
+$(document).ready(function(){
+	_fetch_view();
+});
+
+
+</script>
+
+{% endblock %}
