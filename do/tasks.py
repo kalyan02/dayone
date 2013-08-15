@@ -173,6 +173,8 @@ def sync_post( user_profile, post_object ):
 
 	if post_object.is_anonymous or post_object.is_public:
 		post_object.content = content
+	else:
+		post_object.content = ''
 
 	# TODO: Think about support for multiple tags
 	# post_object.is_public = False
