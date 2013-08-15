@@ -4,8 +4,12 @@
 <div class="page_edit_profile">
 <form action="?" method="POST">
 		<p>
-			<legend>Posts marked with this tag will be published</legend>
+			<legend>Tag for marking posts public</legend>
 			<input type='text' class='input' name='pub_tag' value='{{ form.pub_tag.value|escape }}' size="50"  />
+		</p>
+		<p>
+			<legend>Tag for Anonymous posts</legend>
+			<input type='text' class='input' name='anon_tag' value='{{ form.anon_tag.value|escape }}' size="50"  />
 		</p>
 		<p>
 		<input type="submit" class='button' name="submit" value="Save" />

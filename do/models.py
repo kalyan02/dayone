@@ -29,6 +29,7 @@ class Profile(models.Model):
 	entries_share_url = models.CharField(max_length=200,null=True,default='',blank=True)
 
 	pub_tag = models.CharField(max_length=200,default='public')
+	anon_tag = models.CharField(max_length=200,default='anonymous')
 
 	entries_meta = models.TextField(default=None,null=True,blank=True)
 	entries_last_sync = models.IntegerField(db_index=True,default=0)

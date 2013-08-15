@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 import lib, settings
 from models import *
 
-import urllib, json, os, re, time, dateutil, datetime
+import urllib, json, os, re, time, dateutil, datetime, plistlib
 
 #should spawn more tasks to fetch individual posts
 @task
@@ -14,6 +14,7 @@ def sync_meta( user_profile, *kargs ):
 	time.sleep(1)
 
 	dapi = lib.DropboxAPI( user=user_profile.user )
+	# dapi.metadata( user_profile.entries_path )
 	metadat_request = dapi.request('https://api.dropbox.com/1/metadata/dropbox/' + user_profile.entries_path ).to_url()
 	metadata_response = urllib.urlopen(metadat_request).read()
 
@@ -39,6 +40,9 @@ def sync_data( user_profile, *kargs, **kwargs ):
 
 	user_status.set('post_refresh_in_progress','False')
 	post_refresh_status = user_status.get('post_refresh_in_progress')
+
+	pub_tag = user_profile.pub_tag
+	anon_tag = user_profile.anon_tag
 	# if refresh is not in progress, initiate it
 	print 'about_to_refresh'
 	if post_refresh_status.value != 'True':
@@ -46,6 +50,7 @@ def sync_data( user_profile, *kargs, **kwargs ):
 		user_status.set('post_refresh_in_progress','True')
 
 		# figure out when the posts in the db were last synced!
+		# TODO: Also pick posts whose public/anonymous status may have changed due to change in tag_names!
 		db_uuid_last_sync_map = {}
 		db_uuid_post_map = {}
 		user_posts = Post.objects.filter(user_id=user_profile.user_id)
@@ -63,8 +68,8 @@ def sync_data( user_profile, *kargs, **kwargs ):
 			meta_last_modified_map[ uuid_file ] = last_modified
 
 		# fetch permanent urls first
-		# entries_html = urllib.urlopen(user_profile.entries_share_url).read()
-		entries_html = open('entries_html.html','r').read()
+		entries_html = urllib.urlopen(user_profile.entries_share_url).read()
+		# entries_html = open('entries_html.html','r').read()
 		share_uuid_links = set( re.findall( 'https:\/\/www.dropbox.*?.doentry', entries_html ) )
 		share_uuid_names = []
 		uuid_share_path_map = {}
@@ -84,6 +89,7 @@ def sync_data( user_profile, *kargs, **kwargs ):
 
 		# posts that need to be tasked out and fetched
 		# 	- posts modified after last sync
+		#   - posts whose tag status has been changed
 		# 	- posts not in db
 		uuids_to_task = []
 		all_uuids = meta_last_modified_map.keys()
@@ -99,6 +105,14 @@ def sync_data( user_profile, *kargs, **kwargs ):
 				# check if its sync date is before meta modificatio ndate
 				if db_uuid_last_sync_map[each_uuid] < meta_last_modified_map[each_uuid]:
 					uuids_to_task.append( each_uuid )
+				# check if it still satisfies the public/anonymous structure
+				else:
+					post = db_uuid_post_map[each_uuid]
+					# double check this!!
+					if ((post.is_public and pub_tag not in post.all_tags) or (not post.is_public and pub_tag in post.all_tags) 
+						or (post.is_anonymous and anon_tag not in post.all_tags) or (not post.is_anonymous and anon_tag in post.all_tags)):
+							uuids_to_task.append( each_uuid )
+
 
 		print 'UUIDS_TO_TASK'
 		print json.dumps(uuids_to_task,indent=4)
@@ -137,12 +151,36 @@ def sync_data( user_profile, *kargs, **kwargs ):
 
 @task
 def sync_post( user_profile, post_object ):
-	time.sleep(3)
 	print "SYNC_POST", post_object.uuid
 	content = urllib.urlopen( post_object.entry_share_url ).read()
-	post_object.content = content
+	json = plistlib.readPlistFromString(content)
+
+	# post_object.content = content
+	# post_object.post_json = json.dumps( json )
 	post_object.sync_ready = False
 	post_object.sync_complete = True
 	post_object.last_sync = time.time()
+
+	post_tags = json.get('Tags',[])
+	post_tags = [ each.lower() for each in post_tags ]
+	post_object.all_tags = ",".join(post_tags)
+
+	if user_profile.anon_tag.lower().strip() in post_tags:
+		post_object.is_anonymous = True
+
+	if user_profile.pub_tag.lower().strip() in post_tags:
+		post_object.is_public = True
+
+	if post_object.is_anonymous or post_object.is_public:
+		post_object.content = content
+
+	# TODO: Think about support for multiple tags
+	# post_object.is_public = False
+	# user_pub_tags = user_profile.pub_tag.lower().split(',')
+	# user_pub_tags = map( lambda item: item.strip(), user_pub_tags )
+	# for each_pub_tag in user_pub_tags:
+	# 	if each_pub_tag in post_tags:
+	# 		post_object.is_public = True
+
 	post_object.save()
 	pass

@@ -14,6 +14,7 @@ from do import settings, lib, tasks
 
 class EditProfileForm(forms.Form):
 	pub_tag = forms.CharField()
+	anon_tag = forms.CharField()
 
 def _get_request_user_profile(request):
 	try:
@@ -37,9 +38,15 @@ def edit_profile(request):
 		form = EditProfileForm(data=request.POST)
 		if form.is_valid():
 			user_profile.pub_tag = form.cleaned_data['pub_tag']
+			user_profile.anon_tag = form.cleaned_data['anon_tag']
 			user_profile.save()
+
+			tasks.sync_meta.delay( user_profile )
 	else:
-		form = EditProfileForm(initial={'pub_tag':user_profile.pub_tag})
+		form = EditProfileForm(initial={
+				'pub_tag':user_profile.pub_tag,
+				'anon_tag':user_profile.anon_tag
+			})
 		form.user = request.user
 
 	return render( request, 'edit_profile.html', {
@@ -114,6 +121,7 @@ def setup_profile(request):
 					eres_obj = json.loads( eres )
 
 					if len( filter( lambda item: item['path'].endswith('.doentry'), eres_obj['contents'] ) ) > 0:
+						#TODO: Farm out into a background task
 						api_call = dapi.request('https://api.dropbox.com/1/shares/dropbox/' + entries_path).to_url()
 						api_data = json.loads( urllib.urlopen(api_call).read() )
 						entries_share_url = api_data['url']
