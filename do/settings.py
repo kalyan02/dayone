@@ -1,7 +1,8 @@
 # Django settings for do project.
 import private_config
+import os
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -24,8 +25,8 @@ DATABASES = {
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['localhost','*']
+APPEND_SLASH = False
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -92,6 +93,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    # 'do.middleware.AppendOrRemoveSlashMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -106,8 +108,10 @@ ROOT_URLCONF = 'do.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'do.wsgi.application'
 
+ROOTDIR = os.path.dirname( os.path.abspath(os.path.dirname(__file__)) )
+print 'fu', ROOTDIR + "/templates"
 TEMPLATE_DIRS = (
-    'templates'
+    ROOTDIR + '/templates'
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.

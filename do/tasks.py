@@ -3,7 +3,7 @@ from celery.result import AsyncResult
 
 from django.http import HttpResponse, HttpResponseRedirect
 
-import lib, settings
+import lib, settings, util
 from models import *
 
 import urllib, json, os, re, time, dateutil, datetime, plistlib
@@ -153,7 +153,13 @@ def sync_data( user_profile, *kargs, **kwargs ):
 def sync_post( user_profile, post_object ):
 	print "SYNC_POST", post_object.uuid
 	content = urllib.urlopen( post_object.entry_share_url ).read()
-	json = plistlib.readPlistFromString(content)
+	try:
+		content_json = plistlib.readPlistFromString(content)
+	except:
+		content = content.replace('UTF-8','UTF-16')
+		content_json = plistlib.readPlistFromString(content)
+
+	util.clean_keys(content_json)
 
 	# post_object.content = content
 	# post_object.post_json = json.dumps( json )
@@ -161,9 +167,10 @@ def sync_post( user_profile, post_object ):
 	post_object.sync_complete = True
 	post_object.last_sync = time.time()
 
-	post_tags = json.get('Tags',[])
+	post_tags = content_json.get('tags',[])
 	post_tags = [ each.lower() for each in post_tags ]
 	post_object.all_tags = ",".join(post_tags)
+
 
 	if user_profile.anon_tag.lower().strip() in post_tags:
 		post_object.is_anonymous = True
@@ -172,7 +179,7 @@ def sync_post( user_profile, post_object ):
 		post_object.is_public = True
 
 	if post_object.is_anonymous or post_object.is_public:
-		post_object.content = content
+		post_object.content = util.json_dumps(content_json)
 	else:
 		post_object.content = ''
 

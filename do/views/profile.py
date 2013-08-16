@@ -167,7 +167,6 @@ def view_entries(request):
 	user_profile = _get_request_user_profile(request)
 	user_status = Status.factory(request.user)
 
-
 	meta_job_id = 0
 	# on page refresh, start sync task if its been a while!
 	if time.time() - user_profile.entries_last_sync > 24*60*60 or True:

@@ -24,6 +24,9 @@
 
 	.page_setup table td { font-size: 20px; }
 	.page_setup table input { font-size: 20px; padding: 6px 20px; margin:5px; background: #3A9EE4; border: 0; border-radius: 10px;   color : #fff;}
+
+	.each_post { border-bottom:  1px solid #ccc; }
+	.post_date { font-style: italic; }
 	</style>
 	<script type="text/javascript" src="/static/jquery.min.js"></script>
 </head>
@@ -34,12 +37,13 @@
 	<div id="header">
 		<h2>dayone.in
 			<span>
+			<a href='{% url 'dayroll' %}'>Dayroll</a>
 			{% if not user.is_authenticated %}
 				<a href='{% url 'socialauth_begin' 'dropbox' %}'>Log into dropbox</a>
 			{% else %}
 				<a href='{% url 'edit_profile' %}'>edit profile</a>
 				<a href='{% url 'view_entries' %}'>view entries</a>
-				<a href='{% url 'api_profile' %}'>api stuff</a>
+				<!-- <a href='{% url 'api_profile' %}'>api stuff</a> -->
 			{% endif %}
 			</span>
 		</h2>

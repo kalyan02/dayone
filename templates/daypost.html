@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load url from future %}
+{% block content %}
+<div class="page_dayroll">
+	<div class='each_post'>
+	<p class='post_date'><a href="{% url 'daypost' post.id %}">{{ post.creation_date }}</a></p>
+	{{ post.entry_html|safe }}
+	</div>
+</div>
+{% endblock %}
