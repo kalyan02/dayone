@@ -28,7 +28,7 @@ def _get_content(post):
 
 
 def dayroll(request):
-	user_posts = Post.objects.filter( Q(is_public=True) | Q(is_anonymous=True) )
+	user_posts = Post.objects.filter( Q(is_public=True) | Q(is_anonymous=True) ).order_by('-id')
 	all_posts = []
 	for each in user_posts:
 		content = _get_content(each)

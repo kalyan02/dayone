@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+from do import private_config
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "do.settings")
@@ -14,9 +15,7 @@ if __name__ == "__main__":
 
     from django.contrib.auth.models import User
     if len(sys.argv) >= 2 and sys.argv[1] == 'syncdb':
-        auto_admins = (
-        		('kalyan','kalyan','kalyan@kalyan.com'),
-        	)
+        auto_admins = private_config.AUTO_ADMINS
 
         for admin in auto_admins:
         	username, password, email = admin
