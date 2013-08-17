@@ -4,7 +4,7 @@
 DROPBOX_APP_ID=''
 DROPBOX_API_SECRET=''
 
-# django app sercret for hashing cookies
+# django app sercret for salting and hashing cookies
 SECRET_KEY = ''
 
 # automatic admin configuration
