@@ -14,19 +14,28 @@ Note: The tags are configurable from the edit profile interface
 
 ## Prerequists
 
+  * Python
   * Django
   * Celery
   * Redis
   * (Mysql or sqlite)
-  * Python
   * markdown
   * python dropbox api/sdk
 
+## Setup
+Rename `do/private_config-sample.py` to `do/private_config.py`. This is your private configuration file for setup. 
+Fill in the following information
+
+  * `DROPBOX_APP_ID` - Your Dropbox API key
+  * `DROPBOX_API_SECRET` - API secret
+  * `SECRET_KEY` - Django app secret key for hashing cookies
+  * `AUTO_ADMINS` - Admin username/password information for automatically creating admin login
+
 ## How to run
 
-  * run ./migrate.sh to setup databases
-  * start redis server
-  * run ./celery-worker.sh to start celery for background processing
+  * install and start redis server
+  * run `./migrate.sh` to setup databases
+  * run `./celery-worker.sh` to start celery for background processing
 
 ## Todo
 
@@ -34,5 +43,8 @@ Note: The tags are configurable from the edit profile interface
   * Support adding of permalink back to the content for easy reference
   * implement user profiles, pagination for dayroll, public posts
   * Improve the UI
+  * Implement data update scheduler for all users in the system
 
+## License
+Please refer the `LICENSE` file.
 
