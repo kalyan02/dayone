@@ -61,7 +61,6 @@ def daypost(request, post_id):
 
 def page_404(request):
     # response = render_to_response('404.html', locals(), context_instance=RequestContext(request))
-	print 'fuck you'
 	# return HttpResponse('shit')
 	# return HttpResponse('shit',status=404)
 	return render( request, '404.html', status=404 )

@@ -15,12 +15,10 @@ Note: The tags are configurable from the edit profile interface
 ## Prerequists
 
   * Python
-  * Django
   * Celery
   * Redis
   * (Mysql or sqlite)
-  * markdown
-  * python dropbox api/sdk
+  * python packages in requirements.txt
 
 ## Setup
 Rename `do/private_config-sample.py` to `do/private_config.py`. This is your private configuration file for setup. 
@@ -31,6 +29,12 @@ Fill in the following information
   * `SECRET_KEY` - Django app secret key for hashing cookies
   * `AUTO_ADMINS` - Admin username/password information for automatically creating admin login
 
+Install required packages using virtualenv
+
+  * run `$ virtualenv ENV`
+  * run `$ source ./ENV/bin/activate`
+  * run `$ pip install -r requirements.txt`
+
 ## How to run
 
   * install and start redis server
@@ -39,7 +43,6 @@ Fill in the following information
 
 ## Todo
 
-  * Sandbox and add virtual environment file
   * Support adding of permalink back to the content for easy reference
   * implement user profiles, pagination for dayroll, public posts
   * Improve the UI

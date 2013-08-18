@@ -19,7 +19,7 @@ class AppendOrRemoveSlashMiddleware(object):
 		
 		# check if the url is valid
 		urlconf = getattr(request, 'urlconf', None)
-		print 'stupid shit'
+		
 		if not _is_valid_path(request.path_info, urlconf):
 			# if not, check if adding/removing the trailing slash helps
 			if request.path_info.endswith('/'):
