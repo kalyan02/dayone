@@ -9,6 +9,8 @@ from django import forms
 from django.forms.util import ErrorList
 from django.template.loader import render_to_string
 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 import oauth2, json, urlparse, urllib, time, os, plistlib, datetime, re
 from time import mktime
 from do import settings, lib, tasks, util
@@ -28,15 +30,28 @@ def _get_content(post):
 
 
 def dayroll(request):
+	the_page = request.GET.get('page')
 	user_posts = Post.objects.filter( Q(is_public=True) | Q(is_anonymous=True) ).order_by('-id')
+	paginator = Paginator( user_posts, 10 )
+
+	try:
+		page_posts = paginator.page(the_page)
+	except PageNotAnInteger:
+		page_posts = paginator.page(1)
+	except EmptyPage:
+		page_posts = paginator.page(paginator.num_pages)
+
+
+	# fleshen the content of the objects we require in the page
 	all_posts = []
-	for each in user_posts:
-		content = _get_content(each)
-		all_posts.append(content)
+	for page_post in page_posts.object_list:
+		all_posts.append( _get_content(page_post) )
+	# and assign it back to the pagination post object - it makes life easier
+	page_posts.object_list = all_posts
 
 	return render( request, 'dayroll.html', {
 			'user' : request.user,
-			'all_posts' : all_posts
+			'all_posts' : page_posts
 		})
 
 def daypost(request, post_id):

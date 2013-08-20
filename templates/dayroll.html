@@ -8,5 +8,27 @@
 	{{ post.entry_html|safe }}
 	</div>
 {% endfor %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if all_posts.has_previous %}
+            <a href="?page={{ all_posts.previous_page_number }}">&laquo; prev</a>
+        {% else %}
+			<span class='disabled_pagination'>&laquo; prev</span>
+        {% endif %}
+
+        <span class="current">
+            Page {{ all_posts.number }} of {{ all_posts.paginator.num_pages }}.
+        </span>
+
+        {% if all_posts.has_next %}
+            <a href="?page={{ all_posts.next_page_number }}">next &raquo;</a>
+        {% else %}
+			<span class='disabled_pagination'>next &raquo;</span>
+        {% endif %}
+
+    </span>
+</div>
+
 </div>
 {% endblock %}
