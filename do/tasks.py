@@ -8,10 +8,21 @@ from models import *
 
 import urllib, json, os, re, time, dateutil, datetime, plistlib
 
+@task
+def sync_all_users():
+	# periodically farm out tasks to fetch user data for all users not updated in the last 1 hour
+	pass
+
+@task
+def sync_user( user_profile ):
+	# this task is essentailly sync_meta() + sync_data() task run sequentially 
+	pass
+
 #should spawn more tasks to fetch individual posts
 @task
 def sync_meta( user_profile, *kargs ):
-	time.sleep(1)
+
+	# TODO :check for user entires_last_sync time gap
 
 	dapi = lib.DropboxAPI( user=user_profile.user )
 	# dapi.metadata( user_profile.entries_path )

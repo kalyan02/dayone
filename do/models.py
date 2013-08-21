@@ -32,7 +32,10 @@ class Profile(models.Model):
 	anon_tag = models.CharField(max_length=200,default='anonymous')
 
 	entries_meta = models.TextField(default=None,null=True,blank=True)
-	entries_last_sync = models.IntegerField(db_index=True,default=0)
+	entries_last_sync = models.IntegerField(db_index=True,default=0) #TODO:ambiguous name, migrate to entries_meta_last_sync
+
+	# field indicates what time user task has been initiated the last
+	sync_task_timestamp = models.IntegerField(db_index=True,default=0)	
 
 class Post(models.Model):
 	user = models.ForeignKey(auth.models.User)
