@@ -1,5 +1,5 @@
 BeautifulSoup==3.2.1
-Django==1.5.2
+django>=1.11.29
 Markdown==2.3.1
 South==0.8.2
 amqp==1.0.13
@@ -8,7 +8,7 @@ billiard==2.7.3.32
 django-celery==3.0.21
 django-social-auth==0.7.25
 dropbox==1.6
-httplib2==0.8
+httplib2>=0.18.0
 kombu==2.5.13
 oauth2==1.5.211
 python-dateutil==2.1
